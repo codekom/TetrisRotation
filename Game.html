@@ -1,0 +1,218 @@
+<html>
+<head><title>Tetris</title></head>
+<body>
+
+<h1 align="center">TETRIS</h1>
+<div align="center">
+<canvas id="myCanvas" width="600" height="600" style="border:2px solid #c3c3c3;"></canvas>
+</div>
+<br>
+<div align="center">
+    <button id="btn">Rotate</button>
+    <button id="left">Left</button>
+    <button id="right">Right</button>
+</div>
+
+<script>
+    
+    var refBlock = [[0, 1, 2],
+                    [3, 4, 5],
+                    [6, 7, 8]];
+
+    var retBlock = [[6, 3, 0],
+                    [7, 4, 1],
+                    [8, 5, 2]];
+
+    var block1 = [[1, 1, 0],
+                  [0, 1, 1],
+                  [0, 0, 0]];
+
+    var block2 = [[0, 1, 1],
+                  [1, 1, 0],
+                  [0, 0, 0]];
+
+    var block3 = [[1, 1, 1],
+                  [0, 1, 0],
+                  [0, 0, 0]];
+
+    var block4 = [[1, 0, 0],
+                  [1, 1, 1],
+                  [0, 0, 0]];
+
+    var block5 = [[1, 1, 0],
+                  [1, 1, 0],
+                  [0, 0, 0]];
+
+    var block6 = [[0, 0, 1],
+                  [1, 1, 1],
+                  [0, 0, 0]]; 
+
+    var block7 = [[0, 0, 0],
+                  [1, 1, 1],
+                  [0, 0, 0]]
+
+    var blocks = [block1,block2,block3,block4,block5,block6,block7];
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    var img = new Image();
+    var curx=200,cury=0;
+    var block = blocks[Math.floor(Math.random()*blocks.length)];
+    createImage(block,curx,cury);
+
+    function createNewImage(){
+        blocks = [block1,block2,block3,block4,block5,block6,block7];
+        canvas = document.getElementById("myCanvas");
+        ctx = canvas.getContext("2d");
+        img = new Image();
+        curx=200,cury=0;
+        block = blocks[Math.floor(Math.random()*blocks.length)];
+        createImage(block,curx,cury);
+    }
+    
+    window.setInterval(function(){
+       automatic()
+    }, 2000);
+
+    function automatic(){ 
+        if(cury<450){
+            cury+=50;
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+        else if(cury==450)
+        {
+            let f=0;
+            for(let i=0;i<3;i++){
+                if(block[2][i]==1)
+                    f=1;
+            }
+            if(f==0){
+                cury+=50;
+                insideCanvas();
+                createImage(block,curx,cury); 
+            }
+            createNewImage();
+        }
+    }
+
+    document.getElementById("btn").addEventListener("click",myFuncRot);
+    document.getElementById("left").addEventListener("click",myFuncLeft);
+    document.getElementById("right").addEventListener("click",myFuncRight);
+
+    function printBlock(b) {
+
+        var x = "<table height=\"150\" width=\"150\">";
+        for (let i = 0; i < 3; i++) {
+            x = x + "<tr>";
+
+            for (let j = 0; j < 3; j++) {
+                if (b[i][j] == 1)
+                    x = x + "<td bgcolor=\"#FF0000\"></td>";
+                else
+                    x = x + "<td></td>";
+            }
+            x = x + "</tr>";
+        }
+        x = x + "</table>";
+        return x;
+    }
+
+    function blockAfterRotation(b) {
+        let loc = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (b[i][j] == 1) {
+                    loc.push(refBlock[i][j]);
+                }
+            }
+        }
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                b[i][j] = 0;
+                for (let k = 0; k < loc.length; k++) {
+                    if (retBlock[i][j] == loc[k])
+                        b[i][j] = 1;
+                }              
+            }
+        }
+        return b;
+    }
+
+    function createImage(b,x,y){
+        var data = "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>" +
+                         "<foreignObject width='200%' height='200%'>" +
+                           "<div xmlns='http://www.w3.org/1999/xhtml' style='font-size:10px'>" +
+                              printBlock(b) +
+                           "</div>" +
+                         "</foreignObject>" +
+                       "</svg>";
+
+        var DOMURL = self.URL || self.webkitURL || self;
+        var svg = new Blob([data], {type: "image/svg+xml;charset=utf-8"});
+        var url = DOMURL.createObjectURL(svg);
+        img.onload = function() {
+            ctx.drawImage(img, x, y);
+            DOMURL.revokeObjectURL(url);
+        };
+        img.src = url;
+    }
+
+    function insideCanvas() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        //ctx.drawImage(img, 0,100);
+    }
+    
+    function myFuncRot() {
+        if(curx>=0 && curx<500 && cury<450){
+            block=blockAfterRotation(block);
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+    }
+    
+    function myFuncLeft() {
+        let f=0;
+        for(let i=0;i<3;i++)
+        {
+            if(block[i][0]!=0)
+                f=1;
+        }
+        if(curx>=50 && cury!=600 && cury<450){
+            curx-=50;
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+        else if(f==0 && curx==0 && cury!=600 && cury<=450)
+        {
+            curx-=50;
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+        console.log(curx);
+    }
+
+    function myFuncRight() {
+        let f=0;
+        for(let i=0;i<3;i++)
+        {
+            if(block[i][2]!=0)
+                f=1;
+        }
+        if(curx+150<=550 && cury!=600 && cury<450){
+            curx+=50;
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+        else if(f==0 && curx==450 && cury!=600 && cury<450)
+        {
+            curx+=50;
+            insideCanvas();
+            createImage(block,curx,cury);
+        }
+        console.log(curx);
+    }
+
+</script>
+
+</body>
+</html>
